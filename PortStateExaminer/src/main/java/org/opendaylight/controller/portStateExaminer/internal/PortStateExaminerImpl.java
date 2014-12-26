@@ -17,26 +17,24 @@
 
 package org.opendaylight.controller.portStateExaminer.internal;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-import org.opendaylight.controller.forwardingrulesmanager.IForwardingRulesManager;
 import org.opendaylight.controller.portStateExaminer.IPortStateExaminerService;
+import org.opendaylight.controller.portStateExaminer.PSEPort;
+import org.opendaylight.controller.portStateExaminer.PSESwitch;
 import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.core.NodeConnector;
 import org.opendaylight.controller.sal.core.Property;
 import org.opendaylight.controller.sal.core.UpdateType;
-import org.opendaylight.controller.sal.flowprogrammer.IFlowProgrammerService;
-import org.opendaylight.controller.sal.packet.IDataPacketService;
-import org.opendaylight.controller.sal.packet.IListenDataPacket;
-import org.opendaylight.controller.sal.packet.PacketResult;
-import org.opendaylight.controller.sal.packet.RawPacket;
 import org.opendaylight.controller.statisticsmanager.IStatisticsManager;
 import org.opendaylight.controller.switchmanager.IInventoryListener;
 import org.opendaylight.controller.switchmanager.ISwitchManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PortStateExaminerImpl implements IPortStateExaminerService, IInventoryListener, IListenDataPacket{
+public class PortStateExaminerImpl implements IPortStateExaminerService, IInventoryListener{
 
 	private static final Logger logger = LoggerFactory
             .getLogger(PortStateExaminerImpl.class);
@@ -44,11 +42,10 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
 	
 	/* External services */
 	private ISwitchManager switchManager = null;
-    private IFlowProgrammerService flowProgrammer = null;
-    private IDataPacketService dataPacketService = null;
-    private IForwardingRulesManager forwardingRulesManager = null;
 	private IStatisticsManager statManager = null;
-
+	private HashMap<String, Node> nodeList = null;
+	private HashMap<String, String> portList = null;
+	
 	/* Default Constructor */
 	public PortStateExaminerImpl() {
 		super();
@@ -57,30 +54,6 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
 
 	/* Setter and UnSetter of External Services */
 	
-	void setDataPacketService(IDataPacketService s) {
-    	logger.info("Datapacketservice set");
-        this.dataPacketService = s;
-    }
-
-    void unsetDataPacketService(IDataPacketService s) {
-    	logger.info("Datapacketservice reset");
-        if (this.dataPacketService == s) {
-            this.dataPacketService = null;
-        }
-    }
-
-    public void setFlowProgrammerService(IFlowProgrammerService s) {
-    	logger.info("FlowProgrammer is set!");
-        this.flowProgrammer = s;
-    }
-
-    public void unsetFlowProgrammerService(IFlowProgrammerService s) {
-    	logger.info("FlowProgrammer is removed!");
-        if (this.flowProgrammer == s) {
-            this.flowProgrammer = null;
-        }
-    }
-
     void setSwitchManager(ISwitchManager s) {
         logger.info("SwitchManager is set!");
         this.switchManager = s;
@@ -90,18 +63,6 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
         if (this.switchManager == s) {
             logger.info("SwitchManager is removed!");
             this.switchManager = null;
-        }
-    }
-
-    void setForwardingRulesManager(IForwardingRulesManager s) {
-    	logger.info("ForwardingRulesManager is set!");
-    	forwardingRulesManager = s;
-    }
-
-    void unsetForwardingRulesManager(IForwardingRulesManager s) {
-    	if (this.forwardingRulesManager == s) {
-            logger.info("Controller is removed!");
-            this.forwardingRulesManager = null;
         }
     }
 
@@ -130,6 +91,8 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
 
     	/* Initialize Plugin components */    	
     	logger.info("Plugin getting Initilizing by Dependency Manager!");
+    	nodeList = new HashMap<String, Node>();
+    	portList = new HashMap<String, String>();
     }
 
 	/**
@@ -163,12 +126,13 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
     }
 
 
-
     /* InventoryListener service Interface - internal use only, exposed To ODL */
 
 	@Override /* ODL NODE notification */
 	public void notifyNode(Node node, UpdateType type, Map<String, Property> propMap) {
 
+		String switchId;
+		
         if(node == null) {
             logger.warn("New Node Notification : Node is null ");
             return;
@@ -179,18 +143,43 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
             return;
         }
         
-        /* Property map currently not important for Node notification handle
-         * For switch deletion property is blank
-        if(propMap == null) {
-        	logger.warn("New Node Notification : property Map is null ");
-            return;
-        }
-        */
+        /* Extract dpId from node */
+        switchId = OdlUtil.getDpIdFromNode(node);
+        if(switchId == null){
+			logger.error("Switch Id could not be extracted !");
+			return;
+		}
+        
+        /* Check type of switch notification */
+		switch (type) {
+        	case ADDED:
+        		this.nodeList.put(switchId, node);
+        		break;
+
+        	case CHANGED:
+	            this.nodeList.put(switchId, node);
+	            break;
+
+        	case REMOVED:
+	        	this.nodeList.remove(switchId);
+	        	break;
+
+        	default:
+        		logger.error("Unknown Type of Switch Notification!");
+		}
 	}
 
 	@Override /* ODL NODECONNECTOR notification */
 	public void notifyNodeConnector(NodeConnector nodeConnector, UpdateType type, Map<String, Property> propMap) {
 
+		logger.info("Ignoring node Connecrtor notification for now");
+		
+		/* Port name is determined later */
+
+		String portName = null;
+		String portNo = null;
+		PSEPort port = null;
+		
         if (nodeConnector == null) {
             logger.warn("New NodeConnector Notification : NodeConnector is null");
             return;
@@ -206,36 +195,102 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
             return;
         }
         
-        else {
-        	logger.info("Ignoring Non Openflow NodeConnector notification !");
-        }
-	}
-
-	/* IListenDataPacket services Interface - internal use only, not exposed */
-
-	@Override /* ODL Packet In notification */
-	public PacketResult receiveDataPacket(RawPacket pkt) {
-
-		logger.warn("New Unexpected Data Packet Notification reached to Plugin !");
-		
-		/* Check if pkt is null */
-		if(pkt == null){
-			logger.info("Packet is null !");
-			return PacketResult.CONSUME;
+        /* Extract port No */
+		portNo = OdlUtil.getPortNo(nodeConnector);
+		if(portNo == null){
+			logger.error("Port No could not be extracted !");
+			return;
 		}
+
 		
-		return PacketResult.CONSUME;
+		/* Extract dpId from Node */
+		switch (type) {
+	        case ADDED:
+	        	/* Extract port Name */
+	    		portName = OdlUtil.getPortName(propMap);
+	    		portList.put(portNo, portName);
+	        	break;
+	
+	        case CHANGED:
+	        	/* Extract port Name */
+	        	portName = OdlUtil.getPortName(propMap);
+	    		portList.put(portNo, portName);
+	        	break;
+	
+	        case REMOVED:
+	        	
+	        	portList.remove(portNo);
+	        	break;
+	
+	        default:
+	            logger.error("Unknown NodeConnector notification received");
+		}
 	}
 
-	
-	
+
 	
 	/* Plugin service Interface - exposed as a service */
 	
 	@Override
-	public boolean dummy() {
-	
-		return true;
+	public HashMap<String, PSESwitch> getSwitch() {
+		
+		HashMap<String, PSESwitch> switchMap = new HashMap<String, PSESwitch>();
+		Node switchNode = null;
+		PSESwitch switchInfo = null;
+		
+		/* For all switch in the  */
+		for(String switchId: nodeList.keySet()) {
+			
+			switchNode = nodeList.get(switchId);
+			switchInfo = new PSESwitch();
+			switchInfo.setSwitchId(switchId);
+			switchInfo.setOpenFlow(OdlUtil.isOpenFlowSwitch(switchNode));
+			Set<NodeConnector> allNodeConnectors = switchManager.getNodeConnectors(switchNode);
+			/* check if no node is attached */
+			if(allNodeConnectors == null){
+				logger.info("No node connector is attached to node: {}", switchNode);
+			}
+			else {
+				for(NodeConnector nodeConnector : allNodeConnectors) {
+					String portNo = OdlUtil.getPortNo(nodeConnector);
+				    switchInfo.addPortNo(portNo);
+				}
+			}
+			switchMap.put(switchId, switchInfo);
+		}
+		
+		return switchMap;
 	}
 
+	@Override
+	public HashMap<String, PSEPort> getPort(String switchId) {
+		
+		Node switchNode = null;
+		HashMap<String, PSEPort> portMap  = new HashMap<String, PSEPort>();
+		
+		if(switchId == null) {
+			logger.info("User must specifiy a valid switch ID");
+		}
+		
+		switchNode = nodeList.get(switchId);
+		Set<NodeConnector> allNodeConnectors = switchManager.getNodeConnectors(switchNode);
+		/* check if no node is attached */
+		if(allNodeConnectors == null){
+			logger.info("No node connector is attached to node: {}", switchNode);
+		}
+		else {
+			for(NodeConnector nodeConnector : allNodeConnectors) {
+				PSEPort port = new PSEPort();
+				
+				String portNo = OdlUtil.getPortNo(nodeConnector);
+				port.setPortNo(portNo);
+				/* TODO: port name is not being added */
+			    String portName = portList.get(portNo);
+			    port.setPortName(portName);
+			    
+			    portMap.put(portNo, port);
+			}
+		}
+		return portMap;
+	}
 }

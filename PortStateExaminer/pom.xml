@@ -33,12 +33,8 @@
             <Import-Package>
               org.opendaylight.controller.sal.core,
               org.opendaylight.controller.sal.utils,
-              org.opendaylight.controller.sal.match,
-              org.opendaylight.controller.sal.action,
               org.opendaylight.controller.sal.packet,
-              org.opendaylight.controller.sal.flowprogrammer,
               org.opendaylight.controller.sal.reader,
-              org.opendaylight.controller.forwardingrulesmanager,
               org.opendaylight.controller.switchmanager,
               org.opendaylight.controller.statisticsmanager,
               org.apache.felix.dm,
