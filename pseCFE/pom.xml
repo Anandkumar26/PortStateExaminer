@@ -10,7 +10,7 @@
 
 
   <groupId>org.opendaylight.controller</groupId>
-  <artifactId>cosanti.PortStateExaminer</artifactId>
+  <artifactId>cosanti.pseCFE</artifactId>
   <version>0.5.0</version>
   <packaging>bundle</packaging>
 
@@ -20,7 +20,7 @@
     <url>https://wiki.opendaylight.org/view/OpenDaylight_Controller:Main</url>
     <tag>HEAD</tag>
   </scm>
-
+  
   <build>
     <plugins>
       <plugin>
@@ -31,28 +31,21 @@
           <instructions>
             <Import-Package>
               org.opendaylight.controller.sal.core,
-              org.opendaylight.controller.sal.utils,
-              org.opendaylight.controller.sal.packet,
-              org.opendaylight.controller.sal.reader,
-              org.opendaylight.controller.switchmanager,
-              org.opendaylight.controller.statisticsmanager,
+               org.opendaylight.controller.portStateExaminer.internal,
+              org.opendaylight.controller.portStateExaminer,
               org.apache.felix.dm,
-              org.osgi.service.component,
-              org.slf4j,
-              org.eclipse.osgi.framework.console,
+			  org.osgi.service.component,
+			  org.eclipse.osgi.framework.console,
               org.osgi.framework,
               org.osgi.service.log,
-              org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819,
-              org.opendaylight.yang.gen.v1.urn.opendaylight.inventory.rev130819.nodes,
-              org.opendaylight.controller.sal.binding.api,
-              org.opendaylight.yangtools.yang.binding
+              org.slf4j,
+			  org.opendaylight.yangtools.yang.binding
             </Import-Package>
-            <Export-Package>
-              org.opendaylight.controller.portStateExaminer.internal,
-              org.opendaylight.controller.portStateExaminer
+			<Export-Package>
+			  org.opendaylight.controller.pse.pseCFE
             </Export-Package>
             <Bundle-Activator>
-              org.opendaylight.controller.portStateExaminer.internal.Activator
+              org.opendaylight.controller.pse.pseCFE.Activator
             </Bundle-Activator>
           </instructions>
           <manifestLocation>${project.basedir}/META-INF</manifestLocation>
@@ -60,10 +53,10 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
+  <dependencies> 
     <dependency>
       <groupId>org.opendaylight.controller</groupId>
-      <artifactId>switchmanager</artifactId>
+      <artifactId>cosanti.PortStateExaminer</artifactId>
       <version>0.5.0</version>
     </dependency>
     <dependency>
@@ -71,15 +64,7 @@
       <artifactId>sal</artifactId>
       <version>0.5.0</version><!--$NO-MVN-MAN-VER$-->
     </dependency>
-    <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>forwardingrulesmanager</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opendaylight.controller</groupId>
-      <artifactId>statisticsmanager</artifactId>
-    </dependency>
-    <dependency>
+	 <dependency>
       <groupId>equinoxSDK381</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
     </dependency>
@@ -87,23 +72,11 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
-    <dependency>
-      	<groupId>org.opendaylight.controller</groupId>
-      	<artifactId>topologymanager</artifactId>
-    </dependency> 
-    <dependency>
+	<dependency>
       <groupId>org.opendaylight.yangtools</groupId>
       <artifactId>yang-binding</artifactId>
       <version>0.6.2-SNAPSHOT</version>
     </dependency>
-
-        <dependency>
-         <groupId>org.opendaylight.controller</groupId>
-         <artifactId>sal-binding-api</artifactId>
-        </dependency>
-    
   </dependencies>
-  <!--   
-  <checksum>2114a2218a2319</checksum>
-  -->
+ 
 </project>

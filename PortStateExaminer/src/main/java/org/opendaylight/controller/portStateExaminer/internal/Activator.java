@@ -85,10 +85,10 @@ public class Activator extends ComponentActivatorAbstractBase {
 
         if (imp.equals(PortStateExaminerImpl.class)) {
 
-        	logger.debug("Exporting the YAON services");
+        	logger.debug("Exporting the PSE services");
 
         	Dictionary<String, String> props = new Hashtable<String, String>();
-        	props.put("salListenerName", "YAON");
+        	props.put("salListenerName", "PSE");
         	c.setInterface(new String[] { IPortStateExaminerService.class.getName(), IInventoryListener.class.getName(), IListenDataPacket.class.getName()}, props);
 
             logger.debug("Registering dependent services");
