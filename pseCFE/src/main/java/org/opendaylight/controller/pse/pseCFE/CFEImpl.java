@@ -26,12 +26,12 @@ public class CFEImpl implements PseCFEApi{
 
 	/* Setter and UnSetter of External Services */
 
-	void setYaonService(IPortStateExaminerService s) {
+	void setPSEService(IPortStateExaminerService s) {
 		logger.info("PseServices is set!");
 		pseService = s;
 	}
 
-	void UnsetYaonService(IPortStateExaminerService s) {
+	void UnsetPSEService(IPortStateExaminerService s) {
 		if (pseService == s) {
             logger.info("PseServices is removed!");
             pseService = null;
