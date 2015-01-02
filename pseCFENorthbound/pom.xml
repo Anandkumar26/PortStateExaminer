@@ -85,15 +85,15 @@
       <artifactId>org.apache.catalina.filters.CorsFilter</artifactId>
       <version>7.0.42</version>
     </dependency>
-     <dependency>
-     <groupId>org.opendaylight.controller</groupId>
-  <artifactId>cosanti.pseCFE</artifactId>
-  <version>0.5.0</version>
-      </dependency>
-	 <dependency>
-    <groupId>com.googlecode.json-simple</groupId>
-    <artifactId>json-simple</artifactId>
-    <version>1.1.1</version>
-</dependency>
+    <dependency>
+      <groupId>org.opendaylight.controller</groupId>
+      <artifactId>cosanti.pseCFE</artifactId>
+      <version>0.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
+    </dependency>
   </dependencies>
 </project>
