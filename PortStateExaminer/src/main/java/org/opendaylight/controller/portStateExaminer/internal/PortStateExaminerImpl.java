@@ -15,7 +15,6 @@ import org.opendaylight.controller.sal.core.Node;
 import org.opendaylight.controller.sal.core.NodeConnector;
 import org.opendaylight.controller.sal.core.Property;
 import org.opendaylight.controller.sal.core.UpdateType;
-import org.opendaylight.controller.statisticsmanager.IStatisticsManager;
 import org.opendaylight.controller.switchmanager.IInventoryListener;
 import org.opendaylight.controller.switchmanager.ISwitchManager;
 import org.slf4j.Logger;
@@ -29,7 +28,6 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
 	
 	/* External services */
 	private ISwitchManager switchManager = null;
-	private IStatisticsManager statManager = null;
 	private HashMap<String, Node> nodeList = null;
 	private HashMap<String, String> portList = null;
 	
@@ -52,20 +50,6 @@ public class PortStateExaminerImpl implements IPortStateExaminerService, IInvent
             this.switchManager = null;
         }
     }
-
-    void setStatisticsManager(IStatisticsManager s) {
-    	logger.info("Statistics Manager is set!");
-    	statManager = s;
-    }
-
-    void unsetStatisticsManager(IStatisticsManager s) {
-    	if (this.statManager  == s) {
-            logger.info("Statistics Manager is removed!");
-            this.statManager = null;
-        }
-    }
-
-
 
     /* Function to be called by ODL */
 
