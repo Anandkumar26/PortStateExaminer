@@ -9,13 +9,8 @@ import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.apache.felix.dm.Component;
-import org.opendaylight.controller.forwardingrulesmanager.IForwardingRulesManager;
 import org.opendaylight.controller.portStateExaminer.IPortStateExaminerService;
 import org.opendaylight.controller.sal.core.ComponentActivatorAbstractBase;
-import org.opendaylight.controller.sal.flowprogrammer.IFlowProgrammerService;
-import org.opendaylight.controller.sal.packet.IDataPacketService;
-import org.opendaylight.controller.sal.packet.IListenDataPacket;
-import org.opendaylight.controller.statisticsmanager.IStatisticsManager;
 import org.opendaylight.controller.switchmanager.IInventoryListener;
 import org.opendaylight.controller.switchmanager.ISwitchManager;
 import org.slf4j.Logger;
@@ -23,8 +18,11 @@ import org.slf4j.LoggerFactory;
 
 
 public class Activator extends ComponentActivatorAbstractBase {
-    protected static final Logger logger = LoggerFactory
-            .getLogger(Activator.class);
+	
+    /** 
+     * Logger for the class 
+     **/
+    protected static final Logger logger = LoggerFactory.getLogger(Activator.class);
 
     /**
      * Function called when the activator starts just after some
@@ -34,7 +32,6 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
 	public void init() {
-
     }
 
     /**
@@ -44,7 +41,6 @@ public class Activator extends ComponentActivatorAbstractBase {
      */
     @Override
 	public void destroy() {
-
     }
 
     /**
@@ -57,7 +53,7 @@ public class Activator extends ComponentActivatorAbstractBase {
      * Object
      */
     @Override
-	public Object[] getImplementations() {
+    public Object[] getImplementations() {
     	logger.debug("Bundle getting YAON implementation info!");
         Object[] res = { PortStateExaminerImpl.class};
         return res;
@@ -77,40 +73,21 @@ public class Activator extends ComponentActivatorAbstractBase {
      * should not be the case though.
      */
     @Override
-	public void configureInstance(Component c, Object imp, String containerName) {
+    public void configureInstance(Component c, Object imp, String containerName) {
 
         if (imp.equals(PortStateExaminerImpl.class)) {
 
-        	logger.debug("Exporting the PSE services");
+            logger.debug("Exporting the PSE services");
 
-        	Dictionary<String, String> props = new Hashtable<String, String>();
-        	props.put("salListenerName", "PSE");
-        	c.setInterface(new String[] { IPortStateExaminerService.class.getName(), IInventoryListener.class.getName(), IListenDataPacket.class.getName()}, props);
+            Dictionary<String, String> props = new Hashtable<String, String>();
+            props.put("salListenerName", "PSE");
+            c.setInterface(new String[] { IPortStateExaminerService.class.getName(), IInventoryListener.class.getName()}, props);
 
             logger.debug("Registering dependent services");
 
             c.add(createContainerServiceDependency(containerName).setService(
                     ISwitchManager.class).setCallbacks("setSwitchManager",
                     "unsetSwitchManager").setRequired(true));
-
-            c.add(createContainerServiceDependency(containerName).setService(
-                    IDataPacketService.class).setCallbacks(
-                    "setDataPacketService", "unsetDataPacketService")
-                    .setRequired(true));
-
-            c.add(createContainerServiceDependency(containerName).setService(
-                    IForwardingRulesManager.class).setCallbacks(
-                    "setForwardingRulesManager", "unsetForwardingRulesManager")
-                    .setRequired(true));
-
-            c.add(createContainerServiceDependency(containerName).setService(
-                    IFlowProgrammerService.class).setCallbacks(
-                    "setFlowProgrammerService", "unsetFlowProgrammerService")
-                    .setRequired(true));
-
-            c.add(createServiceDependency().setService(IStatisticsManager.class)
-                    .setCallbacks("setStatisticsManager", "unsetStatisticsManager").setRequired(true));
-
         }
     }
 
